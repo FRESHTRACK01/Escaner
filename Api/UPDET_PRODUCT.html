@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario para Modificar Producto</title>
+</head>
+<body>
+    <h2>Formulario para Modificar Producto</h2>
+    <form id="updateForm" onsubmit="event.preventDefault(); updateProducto();">
+        <label for="productId">ID del Producto:</label>
+        <input type="number" id="productId" name="productId" required><br><br>
+        
+        <label for="folio">Folio:</label>
+        <input type="text" id="folio" name="Folio" required><br><br>
+        
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="Nombre" required><br><br>
+        
+        <label for="tipo">Tipo:</label>
+        <input type="text" id="tipo" name="Tipo" required><br><br>
+        
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="cantidad" required><br><br>
+        
+        <label for="fechaEntrada">Fecha Entrada:</label>
+        <input type="date" id="fechaEntrada" name="fecha_entrada" required><br><br>
+        
+        <label for="fechaSalida">Fecha Salida:</label>
+        <input type="date" id="fechaSalida" name="fecha_salida"><br><br>
+        
+        <label for="precio">Precio:</label>
+        <input type="number" id="precio" name="precio" step="0.01" required><br><br>
+        
+        <button type="submit">Actualizar Producto</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        function updateProducto() {
+            // Obtener los valores del formulario
+            const productId = document.getElementById('productId').value;
+            const folio = document.getElementById('folio').value;
+            const nombre = document.getElementById('nombre').value;
+            const tipo = document.getElementById('tipo').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const fechaEntrada = document.getElementById('fechaEntrada').value;
+            const fechaSalida = document.getElementById('fechaSalida').value || null;
+            const precio = document.getElementById('precio').value;
+
+            // Crear el objeto de datos para enviar
+            const data = {
+                Folio: folio,
+                Nombre: nombre,
+                Tipo: tipo,
+                cantidad: cantidad,
+                fecha_entrada: fechaEntrada,
+                fecha_salida: fechaSalida,
+                precio: precio
+            };
+
+            // Enviar la solicitud PUT a la API usando fetch
+            fetch(`http://192.168.1.74:5000/update_producto/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar mensaje de éxito
+                document.getElementById('responseMessage').innerText = data.mensaje || 'Producto actualizado correctamente';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'Hubo un error al actualizar el producto';
+            });
+        }
+    </script>
+
+</body>
+</html>

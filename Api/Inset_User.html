@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario para Insertar Datos</title>
+</head>
+<body>
+    <h2>Formulario para Insertar Datos</h2>
+    <form id="insertForm" onsubmit="event.preventDefault(); insertData();">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="Nombre" required><br><br>
+        
+        <label for="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required><br><br>
+    
+        <label for="telefono">Teléfono:</label>
+        <input type="number" id="telefono" name="telefono" required><br><br>
+    
+        <label for="contraseña">Contraseña:</label>
+        <input type="password" id="contraseña" name="contraseña" minlength="4" maxlength="4" required><br><br>
+    
+        <button type="submit">Enviar</button>
+    </form>
+    
+    <p id="responseMessage"></p>
+    
+    <script>
+        function insertData() {
+            // Obtener los valores del formulario
+            const nombre = document.getElementById('nombre').value;
+            const correo = document.getElementById('correo').value;
+            const telefono = document.getElementById('telefono').value;
+            const contrasena = document.getElementById('contraseña').value;
+    
+            // Crear el objeto de datos para enviar
+            const data = { Nombre: nombre, correo: correo, telefono: telefono, contraseña: contrasena };
+    
+            // Enviar la solicitud POST a la API usando fetch
+            fetch('http://192.168.1.74:5000/insert_users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar mensaje de éxito
+                document.getElementById('responseMessage').innerText = data.mensaje || 'Datos insertados correctamente';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'Hubo un error al insertar los datos';
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario para Insertar Producto</title>
+</head>
+<body>
+    <h2>Formulario para Insertar Producto</h2>
+    <form id="insertForm" onsubmit="event.preventDefault(); insertData();">
+        <label for="folio">Folio:</label>
+        <input type="text" id="folio" name="Folio" required><br><br>
+        
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="Nombre" required><br><br>
+        
+        <label for="tipo">Tipo:</label>
+        <input type="text" id="tipo" name="Tipo" required><br><br>
+        
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="cantidad" required><br><br>
+        
+        <label for="fecha_entrada">Fecha de Entrada:</label>
+        <input type="date" id="fecha_entrada" name="fecha_entrada" required><br><br>
+        
+        <label for="fecha_salida">Fecha de Salida:</label>
+        <input type="date" id="fecha_salida" name="fecha_salida"><br><br>
+        
+        <label for="precio">Precio:</label>
+        <input type="number" id="precio" name="precio" step="0.01" required><br><br>
+        
+        <button type="submit">Enviar</button>
+    </form>
+    
+    <p id="responseMessage"></p>
+    
+    <script>
+        function insertData() {
+            // Obtener los valores del formulario
+            const folio = document.getElementById('folio').value;
+            const nombre = document.getElementById('nombre').value;
+            const tipo = document.getElementById('tipo').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const fecha_entrada = document.getElementById('fecha_entrada').value;
+            const fecha_salida = document.getElementById('fecha_salida').value;
+            const precio = document.getElementById('precio').value;
+    
+            // Crear el objeto de datos para enviar
+            const data = { 
+                Folio: folio, 
+                Nombre: nombre, 
+                Tipo: tipo, 
+                cantidad: cantidad, 
+                fecha_entrada: fecha_entrada, 
+                fecha_salida: fecha_salida, 
+                precio: precio 
+            };
+    
+            // Enviar la solicitud POST a la API usando fetch
+            fetch('http://192.168.1.74:5000/insert_producto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar mensaje de éxito
+                document.getElementById('responseMessage').innerText = data.mensaje || 'Datos insertados correctamente';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'Hubo un error al insertar los datos';
+            });
+        }
+    </script>
+</body>
+</html>

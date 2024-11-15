@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Productos</title>
+</head>
+<body>
+    <h2>Lista de Productos</h2>
+    <table id="productosTable" border="1">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Fecha Entrada</th>
+                <th>Fecha Salida</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los datos de los productos se cargarán aquí -->
+        </tbody>
+    </table>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        function fetchProductos() {
+            // Llamada a la API para obtener los datos de los productos
+            fetch('http://192.168.1.74:5000/get_productos')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al obtener los datos de los productos');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Llenar la tabla con los datos obtenidos
+                    const productosTable = document.getElementById('productosTable').getElementsByTagName('tbody')[0];
+                    productosTable.innerHTML = '';  // Limpiar la tabla antes de llenarla
+
+                    data.forEach(producto => {
+                        const row = productosTable.insertRow();
+
+                        // Crear campos editables para cada celda
+                        row.insertCell(0).innerHTML = `<input type="text" value="${producto.Folio}" />`;
+                        row.insertCell(1).innerHTML = `<input type="text" value="${producto.Nombre}" />`;
+                        row.insertCell(2).innerHTML = `<input type="text" value="${producto.Tipo}" />`;
+                        row.insertCell(3).innerHTML = `<input type="number" value="${producto.cantidad}" />`;
+                        row.insertCell(4).innerHTML = `<input type="date" value="${producto.fecha_entrada}" />`;
+                        row.insertCell(5).innerHTML = `<input type="date" value="${producto.fecha_salida || ''}" />`;
+                        row.insertCell(6).innerHTML = `<input type="number" value="${producto.precio}" step="0.01" />`;
+
+                        // Agregar botones para actualizar y eliminar producto
+                        row.insertCell(7).innerHTML = `
+                            <button onclick="updateProducto(${producto.ID}, this)">Guardar</button>
+                            <button onclick="deleteProducto(${producto.ID}, this)">Eliminar</button>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('responseMessage').innerText = 'Hubo un error al obtener los productos';
+                });
+        }
+
+        function updateProducto(id, button) {
+            const row = button.closest("tr");
+            const folio = row.cells[0].querySelector("input").value;
+            const nombre = row.cells[1].querySelector("input").value;
+            const tipo = row.cells[2].querySelector("input").value;
+            const cantidad = row.cells[3].querySelector("input").value;
+            const fecha_entrada = row.cells[4].querySelector("input").value;
+            const fecha_salida = row.cells[5].querySelector("input").value || null;
+            const precio = row.cells[6].querySelector("input").value;
+
+            const data = {
+                Folio: folio,
+                Nombre: nombre,
+                Tipo: tipo,
+                cantidad: cantidad,
+                fecha_entrada: fecha_entrada,
+                fecha_salida: fecha_salida,
+                precio: precio
+            };
+
+            fetch(`http://192.168.1.74:5000/update_producto/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('responseMessage').innerText = data.mensaje || 'Producto actualizado correctamente';
+                fetchProductos(); // Recargar la tabla de productos
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'Hubo un error al actualizar el producto';
+            });
+        }
+
+        function deleteProducto(id, button) {
+            if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+                fetch(`http://192.168.1.74:5000/delete_producto/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al eliminar el producto');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('responseMessage').innerText = data.mensaje || 'Producto eliminado correctamente';
+                    fetchProductos(); // Recargar la tabla de productos
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('responseMessage').innerText = 'Hubo un error al eliminar el producto';
+                });
+            }
+        }
+
+        // Llama a la función para cargar los productos al cargar la página
+        window.onload = fetchProductos;
+    </script>
+</body>
+</html>

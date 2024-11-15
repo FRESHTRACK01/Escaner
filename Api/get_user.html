@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GET USER</title>
+</head>
+<body>
+    <h2>Lista de Usuarios</h2>
+<table id="usuariosTable" border="1">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Contraseña</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Los datos de los usuarios se cargarán aquí -->
+    </tbody>
+</table>
+
+<p id="responseMessage"></p>
+
+<script>
+    function fetchUsers() {
+        // Llamada a la API para obtener los datos de los usuarios
+        fetch('http://192.168.1.74:5000/get_users')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener los datos de los usuarios');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Llenar la tabla con los datos obtenidos
+                const usuariosTable = document.getElementById('usuariosTable').getElementsByTagName('tbody')[0];
+                usuariosTable.innerHTML = '';  // Limpiar la tabla antes de llenarla
+
+                data.forEach(usuario => {
+                    const row = usuariosTable.insertRow();
+
+                    // Crear campos editables para cada celda
+                    const nombreCell = row.insertCell(0);
+                    const correoCell = row.insertCell(1);
+                    const telefonoCell = row.insertCell(2);
+                    const contrasenaCell = row.insertCell(3);
+                    const actionsCell = row.insertCell(4);
+
+                    // Hacer las celdas editables
+                    nombreCell.innerHTML = `<input type="text" value="${usuario.Nombre}" />`;
+                    correoCell.innerHTML = `<input type="email" value="${usuario.correo}" />`;
+                    telefonoCell.innerHTML = `<input type="number" value="${usuario.telefono}" />`;
+                    contrasenaCell.innerHTML = `<input type="password" value="${usuario.contraseña}" />`;
+
+                    // Agregar botón para eliminar usuario
+                    actionsCell.innerHTML = `
+                        <button onclick="updateUser(${usuario.id}, this)">Guardar</button>
+                        <button onclick="deleteUser(${usuario.id}, this)">Eliminar</button>
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function updateUser (id, button) {
+    const row = button.closest("tr");
+    const nombre = row.cells[0].querySelector("input").value;
+    const correo = row.cells[1].querySelector("input").value;
+    const telefono = row.cells[2].querySelector("input").value;
+    const contrasena = row.cells[3].querySelector("input").value;
+
+    const data = {
+        Nombre: nombre,
+        correo: correo,
+        telefono: telefono,
+        contraseña: contrasena
+    };
+
+    fetch(`http://192.168.1.74:5000/update_user/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta de la API');
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('responseMessage').innerText = data.mensaje || 'Usuario actualizado correctamente';
+        fetchUsers(); // Llama a fetchUsers para actualizar la tabla
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('responseMessage').innerText = 'Hubo un error al actualizar el usuario';
+    });
+}
+
+function deleteUser(id, button) {
+    if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+        fetch(`http://192.168.1.74:5000/delete_user/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al eliminar el usuario');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('responseMessage').innerText = data.mensaje || 'Usuario eliminado correctamente';
+            fetchUsers(); // Llama a fetchUsers para actualizar la tabla
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('responseMessage').innerText = 'Hubo un error al eliminar el usuario';
+        });
+    }
+}
+
+    // Llamar a la función para cargar los datos al cargar la página
+    window.onload = fetchUsers;
+</script>
+
+
+</body>
+</html>
